@@ -10,15 +10,16 @@ public class Animal {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Integer codigo;
-    public String dono;
+    private Integer dono;
     private String nome;
     private String raca;
     private String porte;
     private int idade;
 
-    public Animal() {}
+    public Animal() {
+    }
 
-    public Animal(Integer codigo, String dono, String nome, String raca, String porte, int idade) {
+    public Animal(Integer codigo, Integer dono, String nome, String raca, String porte, int idade) {
         this.codigo = codigo;
         this.nome = nome;
         this.dono = dono;
@@ -31,7 +32,7 @@ public class Animal {
         return this.nome;
     }
 
-    public String getDono() {
+    public Integer getDono() {
         return this.dono;
     }
 

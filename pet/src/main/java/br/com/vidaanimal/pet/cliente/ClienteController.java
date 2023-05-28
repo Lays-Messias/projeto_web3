@@ -1,8 +1,14 @@
 package br.com.vidaanimal.pet.cliente;
 
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.Optional;
 
+import org.apache.catalina.connector.Response;
+import org.hibernate.exception.ConstraintViolationException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,11 +39,20 @@ public class ClienteController {
     }
 
     @PostMapping
-    public Cliente cadastrar(@RequestBody @Valid Cliente cliente) {
-        return clienteRepository.save(cliente);
-        
+    public ResponseEntity<Object> cadastrar(@RequestBody @Valid Cliente cliente) {
+        try {
+            return ResponseEntity.ok(clienteRepository.save(cliente));
+        } catch (Exception e) {
+            if (e.getCause() instanceof ConstraintViolationException ex) {
+                if ("cliente.cpf".equals(ex.getConstraintName()))
+                    return ResponseEntity.unprocessableEntity().body("CPF já cadastrado");
+                if ("cliente.email".equals(ex.getConstraintName()))
+                    return ResponseEntity.unprocessableEntity().body("Email já cadastrado");
+            }
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
     }
-    
+
     @DeleteMapping("/{codigo}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void apagar(@PathVariable(value = "codigo") Integer codigo) {
@@ -45,21 +60,22 @@ public class ClienteController {
     }
 
     @PutMapping("/{codigo}")
-    public Cliente atualizar(@RequestBody Cliente cliente, @PathVariable(value = "codigo") Integer codigo) {
+    public ResponseEntity<Object> atualizar(@RequestBody Cliente cliente,
+            @PathVariable(value = "codigo") Integer codigo) {
         Optional<Cliente> clienteEncontrado = clienteRepository.findById(codigo);
         if (clienteEncontrado.isEmpty()) {
-            throw new RuntimeException("Cliente não encontrado");
+            return new ResponseEntity<Object>("Cliente não encontrado", HttpStatus.NOT_FOUND);
         }
-        return clienteRepository.save(cliente);
+        return ResponseEntity.ok(clienteRepository.save(cliente));
     }
 
     @GetMapping("/{codigo}")
-    public Cliente buscarClientePorCodigo(@PathVariable(value = "codigo") Integer codigo) {
+    public ResponseEntity<Object> buscarClientePorCodigo(@PathVariable(value = "codigo") Integer codigo) {
         Optional<Cliente> clienteEncontrado = clienteRepository.findById(codigo);
         if (clienteEncontrado.isEmpty()) {
-            throw new RuntimeException("Cliente não encontrado");
+            return new ResponseEntity<Object>("Cliente não encontrado", HttpStatus.NOT_FOUND);
         }
-        return clienteEncontrado.get();
+        return ResponseEntity.ok(clienteEncontrado.get());
     }
 
 }

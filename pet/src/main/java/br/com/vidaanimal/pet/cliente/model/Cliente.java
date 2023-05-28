@@ -19,10 +19,9 @@ public class Cliente {
     private String cpf;
     @Email
     private String email;
-    // private animal
 
     public Cliente() {}
-
+    //construtor
     public Cliente(Integer codigo, String nome, String cpf, String email) {
         this.codigo = codigo;
         this.nome = nome;
